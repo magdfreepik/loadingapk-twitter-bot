@@ -1,0 +1,40 @@
+name: Twitter Auto Poster
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # 12:00 Baghdad
+    - cron: "0 16 * * *"  # 19:00 Baghdad
+    - cron: "*/30 * * * *"  # فحص مستجدات كل 30 دقيقة
+  workflow_dispatch: {}      # تشغيل يدوي عند الحاجة
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: twitter-bot
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run bot (one shot)
+        env:
+          TW_API_KEY: ${{ secrets.TW_API_KEY }}
+          TW_API_KEY_SECRET: ${{ secrets.TW_API_KEY_SECRET }}
+          TW_ACCESS_TOKEN: ${{ secrets.TW_ACCESS_TOKEN }}
+          TW_ACCESS_TOKEN_SECRET: ${{ secrets.TW_ACCESS_TOKEN_SECRET }}
+          TW_BEARER_TOKEN: ${{ secrets.TW_BEARER_TOKEN }}
+          BLOG_RSS_URL: ${{ secrets.BLOG_RSS_URL }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          python main.py
